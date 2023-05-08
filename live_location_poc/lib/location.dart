@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LocationPage extends StatefulWidget {
@@ -54,6 +55,21 @@ class _LocationPageState extends State<LocationPage> {
     return true;
   }
 
+  //Maak locatie laasbaar voor mensen
+  Future<void> _getAddressFromLatLng(Position position) async {
+    await placemarkFromCoordinates(
+            _currPosition!.latitude, _currPosition!.longitude)
+        .then((List<Placemark> placemarks) {
+      Placemark place = placemarks[0];
+      setState(() {
+        _currAddress =
+            '${place.street}, ${place.subLocality}, ${place.subAdministrativeArea}, ${place.postalCode}';
+      });
+    }).catchError((e) {
+      debugPrint(e);
+    });
+  }
+
   Future<void> _getCurrentPosition() async {
     final hasPermission = await _handleLocationPermision();
 
@@ -63,6 +79,7 @@ class _LocationPageState extends State<LocationPage> {
         .then((Position position) {
       setState(() {
         _currPosition = position;
+        _getAddressFromLatLng(_currPosition!);
       });
     }).catchError((e) {
       debugPrint(e);
